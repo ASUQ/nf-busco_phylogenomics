@@ -34,8 +34,10 @@ Email: akito.shima@oist.jp
 """
 
 import argparse
+import fnmatch
 import logging
 import math
+import os
 import shlex
 import shutil
 import subprocess
@@ -172,7 +174,7 @@ SUBCMD_OPTS = {
 }
 
 # Python version check
-REQUIRED = (3, 13)
+REQUIRED = (3, 10)
 if sys.version_info < REQUIRED:
     logging.fatal(
         f"this script requires Python {REQUIRED[0]}.{REQUIRED[1]}+, "
@@ -267,11 +269,21 @@ def collect_gene_seqs(
     logging.info("Collecting genes from BUSCO outputs")
 
     # 1. find both single- and multi-copy directories
-    all_dirs = [
-        d
-        for d in input_dir.rglob("*_copy_busco_sequences", recurse_symlinks=True)
-        if d.is_dir()
-    ]
+    # Note: recurse_symlinks requires Python 3.13+
+    # all_dirs: list[Path] = [
+    #     d
+    #     for d in input_dir.rglob("*_copy_busco_sequences", recurse_symlinks=True)
+    #     if d.is_dir()
+    # ]
+
+    all_dirs: list[Path] = []
+    for root, dirs, _ in os.walk(input_dir, followlinks=True):
+        for dirname in dirs:
+            if fnmatch.fnmatch(dirname, "*_copy_busco_sequences"):
+                dirpath = Path(root) / dirname
+                if dirpath.is_dir():
+                    all_dirs.append(dirpath)
+
     if not all_dirs:
         logging.error(f"No BUSCO output directories found in {input_dir}")
         sys.exit(1)
