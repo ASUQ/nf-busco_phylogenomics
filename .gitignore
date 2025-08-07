@@ -5,7 +5,9 @@
 Icon?
 
 # Nextflow run‐time artifacts
+.nextflow/
 .nextflow.log
+.nextflow.log.*
 .nextflow_history
 .nextflow_trace.*
 .nextflow_timeline.*
@@ -13,6 +15,7 @@ Icon?
 # Work & output dirs (pipeline‐specific)
 work/
 results/
+execution-reports/
 data/
 logs/
 
