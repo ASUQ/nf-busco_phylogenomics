@@ -57,16 +57,29 @@ def missingParametersError() {
 //-- Processes -----------------------------------------------------------------
 
 // Download BUSCO dataset for offline use
-// process download_busco_dataset {
-//     label 'process_single'
-//     tag   'download busco dataset'
+process download_busco_dataset {
+    label 'process_single'
+    tag   'download busco dataset'
 
-//     input:
+    publishDir "${params.outdir}/lineages", mode: 'copy'
 
-//     output:
+    input:
+    val lineage
 
-//     script:
-// }
+    output:
+    path "lineages/${lineage}", emit: lineage_dir
+
+    script:
+    """
+    busco --download "${lineage}" --download_path "lineages/${lineage}"
+    """
+
+    stub:
+    """
+    echo "Stub process for downloading BUSCO dataset: ${lineage}"
+    mkdir -p "lineages/${lineage}"
+    """
+}
 
 // // Run BUSCO for each sample in offline mode
 // process busco {
@@ -156,4 +169,7 @@ workflow {
                     .splitCsv(strip: true, header: true)
                     // .view()
   // println "Input samples: ${params.lineage}"
+
+  // Download BUSCO lineage dataset
+  lineage_dir = download_busco_dataset(lineage: params.lineage)
 }
