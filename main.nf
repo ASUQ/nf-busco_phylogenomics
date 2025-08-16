@@ -7,13 +7,13 @@ params.sample       = params.sample          // Path to sample.csv (header: samp
 params.lineage      = params.lineage         // BUSCO lineage_dataset (e.g. mycoplasmatota_odb12)
 
 // Optional parameters
-params.outdir       = './output'           // Base output directory
-params.fraction     = '0.8,0.9,1.0'      // Completeness fractions
-params.busco_opts   = ''               // Extra BUSCO flags
+params.outdir       = './output'             // Base output directory
+params.fraction     = '0.8,0.9,1.0'          // Completeness fractions
+params.busco_opts   = ''                     // Extra BUSCO flags
 params.mafft_opts   = '--globalpair --maxiterate 1000 --thread $task.cpus'  // MAFFT options
-params.trimal_opts  = '-automated1'   // trimAl options
+params.trimal_opts  = '-automated1'          // trimAl options
 params.amas_opts    = '--in-format fasta --data-type aa --part-format nexus --cores $task.cpus' // AMAS concat options
-params.iqtree_opts  = '-B 1000 -alrt 1000 -m MFP+MERGE -T $task.cpus' // IQ-TREE options
+params.iqtree_opts  = '-B 1000 -alrt 1000 -m MFP+MERGE -T $task.cpus'       // IQ-TREE options
 params.help         = false                  // Help flag
 
 
@@ -148,8 +148,12 @@ workflow {
 
   if (params.sample == null || params.lineage == null) {
     missingParametersError()
+    exit 1
   }
 
   // Channel setup
-
+  fasta_ch = Channel.fromPath(params.sample, checkIfExists: true)
+                    .splitCsv(strip: true, header: true)
+                    // .view()
+  // println "Input samples: ${params.lineage}"
 }
