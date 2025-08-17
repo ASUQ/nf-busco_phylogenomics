@@ -101,18 +101,40 @@ process busco {
     """
 }
 
-// // Collect per-gene FASTA files from BUSCO outputs
-// process collectSeqs {
-//     label 'process_low'
+// Collect per-gene FASTA files from BUSCO outputs
+process collect {
+    label 'process_low'
 
-//     publishDir
+    publishDir
 
-//     input:
+    input:
 
-//     output:
+    output:
 
-//     script:
-// }
+    script:
+}
+
+
+process collect {
+    label 'process_low'
+    tag   'collect'
+
+    publishDir "${params.outdir}/seqs", mode: 'copy'
+
+    input:
+    path busco_dirs
+
+    // Emit a sentinel to let downstream steps bind explicitly
+    output:
+    path 'seqs', emit: seqs_dir
+
+    script:
+    """
+    bin/Busco_multigene_tree.py collect \
+      -i ${params.outdir}/busco \
+      -c ${task.cpus}
+    """
+}
 
 // // Select shared genes based on completeness fractions
 // process selectGenes {
@@ -180,5 +202,9 @@ workflow {
 
   // Run BUSCO for each sample
   busco_results = busco(fasta_ch, busco_db, params.busco_opts)
-  busco_results.view { "BUSCO results: ${it}" }
+  // busco_results.view { "BUSCO results: ${it}" }
+
+  // Collect per-gene FASTA files
+  seqs_dir = collect(busco_results.collect)
+            .view { "Collected per-gene FASTA files: ${it}" }
 }
