@@ -88,7 +88,7 @@ process busco {
           --mode genome \
           --cpu ${task.cpus} \
           --offline \
-          "${busco_opts}"
+          ${busco_opts}
     """
 
     stub:
@@ -119,7 +119,7 @@ process collect_seqs {
     """
     "${projectDir}/bin/busco_multigene_tree.py" collect \
       -i "${params.outdir}/busco" \
-      -c "${task.cpus}"
+      -c ${task.cpus}
     """
 }
 
