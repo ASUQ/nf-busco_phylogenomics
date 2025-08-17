@@ -134,7 +134,7 @@ process collect_and_select_genes {
 // Align and trim genes
 process align_genes {
     label 'process_high'
-    tag   { gene }
+    tag   "${gene}"
 
     publishDir "${params.outdir}/seqs/aligned", mode: 'copy'
     publishDir "${params.outdir}/seqs/trimmed", mode: 'copy'
@@ -161,43 +161,38 @@ process align_genes {
 // Concatenate alignments and infer phylogenetic trees
 process infer_trees {
     label 'process_medium'
-    tag   { "frac${pct}pct" }                      // pct is an integer input (e.g. 80, 90, 100)
+    tag   "frac${pct}pct"
 
     // Publish to base outdir; route files into fracXXpct_results via saveAs
     publishDir "${params.outdir}/frac${pct}pct_results", mode: 'copy'
 
     input:
-    tuple val(pct), path(gene_list)               // pct is INT, e.g. 80
+    tuple val(pct), path(gene_list)
     path  trimmed_all                              // all *_trimmed.faa staged as inputs
 
     output:
-    path 'concat.faa'
-    path 'partitions.nex'
-    path 'frac*', optional: true
+    path "concat.faa"
+    path "partitions.nex"
+    path "frac*", optional: true
 
     script:
     def amas_opts   = (params.amas_opts   ?: '')
     def iqtree_opts = (params.iqtree_opts ?: '')
     """
-    # Read this fraction's gene list (skip 2 header lines)
     mapfile -t GENES < <(tail -n +3 "${gene_list}")
-
-    # Build list of required trimmed alignments
     TRIMMED_FILES=""
-    for gene in "${GENES[@]}"; do
-      f="${gene}_trimmed.faa"
-      [[ -f "$f" ]] || { echo "[ERROR] Missing trimmed file: $f" >&2; exit 2; }
-      TRIMMED_FILES+="$f "
+    for gene in "\${GENES[@]}"; do
+      f="\${gene}_trimmed.faa"
+      [[ -f "\$f" ]] || { echo "[ERROR] Missing trimmed file: \$f" >&2; exit 2; }
+      TRIMMED_FILES+="\$f "
     done
 
-    # Concatenate with AMAS (explicit 'concat' subcommand)
     AMAS.py concat ${amas_opts} \
       --cores ${task.cpus} \
       --concat-out  concat.faa \
       --concat-part partitions.nex \
-      --in-files    ${TRIMMED_FILES}
+      --in-files \${TRIMMED_FILES}
 
-    # Infer with IQ-TREE using the integer percent prefix
     iqtree ${iqtree_opts} \
       -T   ${task.cpus} \
       -s   concat.faa \
@@ -278,7 +273,7 @@ workflow {
                                     def pct = (m[0][1] as int)
                                     tuple(pct, file("${dir}/frac${pct}pct_genes.txt"))
                                 }
-                                .view()
+                                // .view()
 
   // Run one infer job per integer percent in parallel
   infer_trees(frac_gene_file_ch, trimmed_all_ch)
