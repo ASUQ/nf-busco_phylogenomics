@@ -292,7 +292,7 @@ workflow {
                                 .flatten()
                                 .map { dir ->
                                     def m = (dir.name =~ /frac(\d+)pct_results/)
-                                    assert m ; "Unexpected directory name: ${dir.name}"
+                                    assert m : "Unexpected directory name: ${dir.name}"
                                     def pct = (m[0][1] as int)
                                     tuple(pct, file("${dir}/frac${pct}pct_genes.txt"))
                                 }
