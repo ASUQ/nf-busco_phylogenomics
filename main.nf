@@ -95,9 +95,6 @@ process busco {
     """
     echo "Stub process for BUSCO: ${sample}"
     mkdir -p "${sample}/busco_output"
-    echo "Sample: ${sample}" > "${sample}/busco_output/sample_info.txt"
-    echo "Lineage: ${lineage_dir}" >> "${sample}/busco_output/sample_info.txt"
-    echo "BUSCO run completed for ${sample}"
     """
 }
 
@@ -127,7 +124,9 @@ process collect_and_select_genes {
 
     stub:
     """
+    echo "Stub process for collecting and selecting BUSCO genes"
     mkdir -p seqs/raw
+    touch seqs/raw/geneA.faa
     """
 }
 
@@ -156,6 +155,13 @@ process align_genes {
       -in  "${gene}_aligned.faa" \
       -out "${gene}_trimmed.faa"
     """
+
+    stub:
+    """
+    echo "Stub process for aligning and trimming gene: ${gene}"
+    touch "${gene}_aligned.faa"
+    touch "${gene}_trimmed.faa"
+    """
 }
 
 // Concatenate alignments and infer phylogenetic trees
@@ -163,12 +169,11 @@ process infer_trees {
     label 'process_medium'
     tag   "frac${pct}pct"
 
-    // Publish to base outdir; route files into fracXXpct_results via saveAs
     publishDir "${params.outdir}/frac${pct}pct_results", mode: 'copy'
 
     input:
     tuple val(pct), path(gene_list)
-    path  trimmed_all                              // all *_trimmed.faa staged as inputs
+    path  trimmed_all                 // all *_trimmed.faa staged as inputs
 
     output:
     path "concat.faa"
@@ -198,6 +203,27 @@ process infer_trees {
       -s   concat.faa \
       -p   partitions.nex \
       -pre "frac${pct}pct"
+    """
+
+    stub:
+    """
+    echo "Stub process for inferring trees for fraction ${pct}%"
+    mkdir -p frac${pct}pct_results
+    touch "frac${pct}pct_results/concat.faa"
+    touch "frac${pct}pct_results/partitions.nex"
+    touch "frac${pct}pct_results/frac${pct}pct.best_model.nex"
+    touch "frac${pct}pct_results/frac${pct}pct.best_scheme"
+    touch "frac${pct}pct_results/frac${pct}pct.best_scheme.nex"
+    touch "frac${pct}pct_results/frac${pct}pct.bionj"
+    touch "frac${pct}pct_results/frac${pct}pct.ckp.gz"
+    touch "frac${pct}pct_results/frac${pct}pct.contree"
+    touch "frac${pct}pct_results/frac${pct}pct_genes.txt"
+    touch "frac${pct}pct_results/frac${pct}pct.iqtree"
+    touch "frac${pct}pct_results/frac${pct}pct.log"
+    touch "frac${pct}pct_results/frac${pct}pct.mldist"
+    touch "frac${pct}pct_results/frac${pct}pct.model.gz"
+    touch "frac${pct}pct_results/frac${pct}pct.splits.nex"
+    touch "frac${pct}pct_results/frac${pct}pct.treefile"
     """
 }
 
@@ -245,18 +271,15 @@ workflow {
                                   !it.startsWith('Number of genes considered') &&
                                   !it.startsWith('Analyzed genes')   // drop the 2 header lines
                                 }
-                                // .view()
 
 
   // raw dir path from 'seqs' output
   raw_dir_ch = busco_genes.seqs_dir
                           .map { dir -> file("${dir}/raw") }
-                          // .view { "Raw gene directory: ${it}" }
 
   // Create (gene, fasta) tuples by combining gene list + raw dir
   gene_ch = min_frac_gene_ch.combine(raw_dir_ch)
                             .map { gene, rawDir -> tuple(gene, file("${rawDir}/${gene}.faa")) }
-                            // .view{ "Gene channel: ${it}" }
 
   // Align & trim each gene
   aligned = align_genes(gene_ch)
@@ -269,11 +292,10 @@ workflow {
                                 .flatten()
                                 .map { dir ->
                                     def m = (dir.name =~ /frac(\d+)pct_results/)
-                                    assert m, "Unexpected directory name: ${dir.name}"
+                                    assert m ; "Unexpected directory name: ${dir.name}"
                                     def pct = (m[0][1] as int)
                                     tuple(pct, file("${dir}/frac${pct}pct_genes.txt"))
                                 }
-                                // .view()
 
   // Run one infer job per integer percent in parallel
   infer_trees(frac_gene_file_ch, trimmed_all_ch)
