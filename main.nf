@@ -113,7 +113,7 @@ process collect_and_select_genes {
 
     output:
     path 'seqs', emit: seqs_dir
-    path frac*pct_results, emit: frac_results
+    path "frac*pct_results", emit: frac_results
 
     script:
     """
@@ -185,7 +185,6 @@ workflow {
   busco_results = busco(fasta_ch, busco_db, params.busco_opts)
                       .collect()
 
-  // Collect per-gene FASTA files
+  // Collect and select genes from BUSCO results
   seqs_dir = collect_and_select_genes(busco_results, params.fraction)
-            .view { "${it}" }
 }
