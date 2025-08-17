@@ -10,20 +10,8 @@
 
 **busco_phylogenomics** is a Nextflow pipeline to build phylogenomic tree from BUSCO outputs
 
-<!-- TODO nf-core:
-   Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the
-   major pipeline sections and the types of output it produces. You're giving an overview to someone new
-   to nf-core here, in 15-20 seconds. For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction
--->
-
 
 ## Usage
-
-<!-- > [!NOTE]
-> If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data. -->
-
-<!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
-     Explain what rows and columns represent. For instance (please edit as appropriate): -->
 
 First, prepare a samplesheet with your input data that looks as follows:
 
@@ -43,7 +31,8 @@ Now, you can run the pipeline using:
 ```bash
 nextflow run ASUQ/busco_phylogenomics \
    -profile <docker/singularity/.../institute> \
-   --input sample.csv \
+   --sample sample.csv \
+   --lineage <busco_lineage> \
    --outdir <OUTDIR>
 ```
 
