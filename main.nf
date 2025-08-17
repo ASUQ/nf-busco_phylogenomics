@@ -156,22 +156,55 @@ process align_genes {
       -in  "${gene}_aligned.faa" \
       -out "${gene}_trimmed.faa"
     """
+
+// Concatenate alignments and infer phylogenetic trees
+process infer_trees {
+    label 'process_medium'
+    tag   { "frac${pct}pct" }                      // pct is an integer input (e.g. 80, 90, 100)
+
+    // Publish to base outdir; route files into fracXXpct_results via saveAs
+    publishDir "${params.outdir}", mode: 'copy'
+
+    input:
+    tuple val(pct), path(gene_list)               // pct is INT, e.g. 80
+    path  trimmed_all                              // all *_trimmed.faa staged as inputs
+
+    output:
+    path 'concat.faa',            saveAs: { "${task.tag}_results/${it.name}" }
+    path 'partitions.nex',        saveAs: { "${task.tag}_results/${it.name}" }
+    path 'frac*', optional: true, saveAs: { "${task.tag}_results/${it.name}" }
+
+    script:
+    def amas_opts   = (params.amas_opts   ?: '')
+    def iqtree_opts = (params.iqtree_opts ?: '')
+    """
+    # Read this fraction's gene list (skip 2 header lines)
+    mapfile -t GENES < <(tail -n +3 "${gene_list}")
+
+    # Build list of required trimmed alignments
+    TRIMMED_FILES=""
+    for gene in "${GENES[@]}"; do
+      f="${gene}_trimmed.faa"
+      [[ -f "$f" ]] || { echo "[ERROR] Missing trimmed file: $f" >&2; exit 2; }
+      TRIMMED_FILES+="$f "
+    done
+
+    # Concatenate with AMAS (explicit 'concat' subcommand)
+    AMAS.py concat ${amas_opts} \
+      --cores ${task.cpus} \
+      --concat-out  concat.faa \
+      --concat-part partitions.nex \
+      --in-files    ${TRIMMED_FILES}
+
+    # Infer with IQ-TREE using the integer percent prefix
+    iqtree ${iqtree_opts} \
+      -T   ${task.cpus} \
+      -s   concat.faa \
+      -p   partitions.nex \
+      -pre "frac${pct}pct"
+    """
 }
 
-
-// // Concatenate alignments and infer phylogenetic trees
-// process inferTrees {
-//     label 'process_medium'
-//     tag
-
-//     publishDir
-
-//     input:
-
-//     output:
-
-//     script:
-// }
 
 //-- Workflow ------------------------------------------------------------------
 workflow {
@@ -234,4 +267,18 @@ workflow {
 
   // Gather all trimmed files to feed each infer task
   trimmed_all_ch = aligned.trimmed.collect()
+
+  // Build (pct_int, gene_list_file) tuples for ALL fractions found
+  frac_gene_file_ch = busco_genes.frac_results
+                                .flatten()
+                                .map { dir ->
+                                    def m = (dir.name =~ /frac(\d+)pct_results/)
+                                    assert m, "Unexpected directory name: ${dir.name}"
+                                    def pct = (m[0][1] as int)
+                                    tuple(pct, file("${dir}/frac${pct}pct_genes.txt"))
+                                }
+                                .view()
+
+  // Run one infer job per integer percent in parallel
+  infer_trees(frac_gene_file_ch, trimmed_all_ch)
 }
