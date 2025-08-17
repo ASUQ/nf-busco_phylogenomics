@@ -104,19 +104,6 @@ process busco {
 // Collect per-gene FASTA files from BUSCO outputs
 process collect {
     label 'process_low'
-
-    publishDir
-
-    input:
-
-    output:
-
-    script:
-}
-
-
-process collect {
-    label 'process_low'
     tag   'collect'
 
     publishDir "${params.outdir}/seqs", mode: 'copy'
