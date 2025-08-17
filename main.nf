@@ -193,11 +193,9 @@ workflow {
   // Channel setup
   fasta_ch = Channel.fromPath(params.sample, checkIfExists: true)
                     .splitCsv(strip: true, header: true)
-                    // .view()
 
   // Download BUSCO lineage dataset
   busco_db = download_busco_dataset(params.lineage)
-  // busco_db.view { "Downloaded BUSCO lineage: ${it}" }
 
   // Run BUSCO for each sample
   busco_results = busco(fasta_ch, busco_db, params.busco_opts)
@@ -208,24 +206,32 @@ workflow {
 
   // Build gene channel for the smallest fraction only -> per-gene alignment input
   min_frac_gene_ch = busco_genes.frac_results
+                                .flatten()
                                 .filter { it.name == "frac${smallest_pct}pct_results" }
                                 .map { dir -> file("${dir}/frac${smallest_pct}pct_genes.txt") }
-                                .view { "Gene list for fraction ${smallest_pct}%: ${it}" }
+                                .splitText()
+                                .map { it.trim() }                   // remove newline (\n)
+                                .filter {
+                                  it &&                              // drop blanks
+                                  !it.startsWith('Number of genes considered') &&
+                                  !it.startsWith('Analyzed genes')   // drop the 2 header lines
+                                }
+                                // .view()
+
 
   // raw dir path from 'seqs' output
   raw_dir_ch = busco_genes.seqs_dir
                           .map { dir -> file("${dir}/raw") }
-                          .view { "Raw gene directory: ${it}" }
+                          // .view { "Raw gene directory: ${it}" }
 
   // Create (gene, fasta) tuples by combining gene list + raw dir
-  gene_ch = min_frac_gene_ch.combine(raw_dir_ch).flatMap { f, rawdir ->
-    def genes = new File(f.toString()).readLines().drop(2)
-    genes.collect { g -> tuple(g, file("${rawdir}/${g}.faa")) }
-  }
+  gene_ch = min_frac_gene_ch.combine(raw_dir_ch)
+                            .map { gene, rawDir -> tuple(gene, file("${rawDir}/${gene}.faa")) }
+                            // .view{ "Gene channel: ${it}" }
 
-  // // Align & trim each gene
-  // aligned = align_genes(gene_ch)
+  // Align & trim each gene
+  aligned = align_genes(gene_ch)
 
-  // // Gather all trimmed files to feed each infer task
-  // trimmed_all_ch = aligned.trimmed.collect()
+  // Gather all trimmed files to feed each infer task
+  trimmed_all_ch = aligned.trimmed.collect()
 }
