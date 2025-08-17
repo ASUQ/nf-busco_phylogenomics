@@ -164,16 +164,16 @@ process infer_trees {
     tag   { "frac${pct}pct" }                      // pct is an integer input (e.g. 80, 90, 100)
 
     // Publish to base outdir; route files into fracXXpct_results via saveAs
-    publishDir "${params.outdir}", mode: 'copy'
+    publishDir "${params.outdir}/frac${pct}pct_results", mode: 'copy'
 
     input:
     tuple val(pct), path(gene_list)               // pct is INT, e.g. 80
     path  trimmed_all                              // all *_trimmed.faa staged as inputs
 
     output:
-    path 'concat.faa',            saveAs: { "${task.tag}_results/${it.name}" }
-    path 'partitions.nex',        saveAs: { "${task.tag}_results/${it.name}" }
-    path 'frac*', optional: true, saveAs: { "${task.tag}_results/${it.name}" }
+    path 'concat.faa'
+    path 'partitions.nex'
+    path 'frac*', optional: true
 
     script:
     def amas_opts   = (params.amas_opts   ?: '')
