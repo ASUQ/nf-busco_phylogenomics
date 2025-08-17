@@ -156,6 +156,7 @@ process align_genes {
       -in  "${gene}_aligned.faa" \
       -out "${gene}_trimmed.faa"
     """
+}
 
 // Concatenate alignments and infer phylogenetic trees
 process infer_trees {
