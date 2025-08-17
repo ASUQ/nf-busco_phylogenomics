@@ -45,13 +45,13 @@ def missingParametersError() {
 process download_busco_dataset {
     label 'process_single'
 
-    publishDir "${params.outdir}/busco_dataset", mode: 'copy'
+    publishDir "${params.outdir}/busco_downloads", mode: 'copy'
 
     input:
     val lineage
 
     output:
-    path "busco_dataset", emit: lineage_dir
+    path "busco_downloads", emit: lineage_dir
 
     script:
     """
@@ -61,7 +61,7 @@ process download_busco_dataset {
     stub:
     """
     echo "Stub process for downloading BUSCO dataset: ${lineage}"
-    mkdir -p "busco_dataset/lineages/${lineage}"
+    mkdir -p "busco_downloads/lineages/${lineage}"
     """
 }
 
