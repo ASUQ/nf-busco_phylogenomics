@@ -66,19 +66,41 @@ process download_busco_dataset {
     """
 }
 
-// // Run BUSCO for each sample in offline mode
-// process busco {
-//     label 'process_high_memory'
-//     tag
+// Run BUSCO for each sample in offline mode
+process busco {
+    label 'process_high_memory'
+    tag   "${sample}"
 
-//     publishDir
+    publishDir "${params.outdir}/busco", mode: 'copy'
 
-//     input:
+    input:
+    tuple val(sample), path(fasta)
+    path lineage_dir
+    val busco_opts
 
-//     output:
+    output:
+    path "busco_output", emit: busco_dir
 
-//     script:
-// }
+    script:
+    """
+    busco --in "${fasta_file}" \
+          --lineage_path "${lineage_dir}" \
+          --out "${sample}" \
+          --mode genome \
+          --cpu ${task.cpus} \
+          --offline \
+          ${busco_opts}
+    """
+
+    stub:
+    """
+    echo "Stub process for BUSCO: ${sample}"
+    mkdir -p "busco_output"
+    echo "Sample: ${sample}" > "busco_output/sample_info.txt"
+    echo "Lineage: ${lineage_dir}" >> "busco_output/sample_info.txt"
+    echo "BUSCO run completed for ${sample}"
+    """
+}
 
 // // Collect per-gene FASTA files from BUSCO outputs
 // process collectSeqs {
@@ -156,5 +178,9 @@ workflow {
 
   // Download BUSCO lineage dataset
   lineage_dir = download_busco_dataset(params.lineage)
-  lineage_dir.view { "Downloaded BUSCO lineage: ${it}" }
+  // lineage_dir.view { "Downloaded BUSCO lineage: ${it}" }
+
+  // Run BUSCO for each sample
+  busco_results = busco(fasta_ch, lineage_dir, params.busco_opts)
+  busco_results.view { "BUSCO results: ${it}" }
 }
