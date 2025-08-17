@@ -111,9 +111,9 @@ process collect_and_select_genes {
     path sample_busco, stageAs: 'busco/*'
     val fractions
 
-    // Emit a sentinel to let downstream steps bind explicitly
     output:
     path 'seqs', emit: seqs_dir
+    path frac*pct_results, emit: frac_results
 
     script:
     """
