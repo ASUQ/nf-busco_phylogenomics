@@ -79,12 +79,12 @@ process busco {
     val busco_opts
 
     output:
-    path "busco_output", emit: busco_dir
+    path "${sample}-busco", emit: busco_dir
 
     script:
     """
     busco --in "${fasta}" \
-          --lineage_dataset "${lineage_dir}" \
+          --lineage_dataset "${params.lineage}" \
           --out "${sample}" \
           --mode genome \
           --cpu ${task.cpus} \
@@ -95,9 +95,9 @@ process busco {
     stub:
     """
     echo "Stub process for BUSCO: ${sample}"
-    mkdir -p "busco_output"
-    echo "Sample: ${sample}" > "busco_output/sample_info.txt"
-    echo "Lineage: ${lineage_dir}" >> "busco_output/sample_info.txt"
+    mkdir -p "${sample}"
+    echo "Sample: ${sample}" > "${sample}/sample_info.txt"
+    echo "Lineage: ${lineage_dir}" >> "${sample}/sample_info.txt"
     echo "BUSCO run completed for ${sample}"
     """
 }
@@ -177,10 +177,10 @@ workflow {
                     // .view()
 
   // Download BUSCO lineage dataset
-  lineage_dir = download_busco_dataset(params.lineage)
-  // lineage_dir.view { "Downloaded BUSCO lineage: ${it}" }
+  busco_db = download_busco_dataset(params.lineage)
+  // busco_db.view { "Downloaded BUSCO lineage: ${it}" }
 
   // Run BUSCO for each sample
-  busco_results = busco(fasta_ch, lineage_dir, params.busco_opts)
+  busco_results = busco(fasta_ch, busco_db, params.busco_opts)
   busco_results.view { "BUSCO results: ${it}" }
 }
