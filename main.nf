@@ -102,14 +102,14 @@ process busco {
 }
 
 // Collect per-gene FASTA files from BUSCO outputs
-process collect_seqs {
+process collect_and_select_genes {
     label 'process_low'
-    tag   'collect'
 
     publishDir "${params.outdir}", mode: 'copy'
 
     input:
     path sample_busco, stageAs: 'busco/*'
+    val fractions
 
     // Emit a sentinel to let downstream steps bind explicitly
     output:
@@ -119,6 +119,10 @@ process collect_seqs {
     """
     "${projectDir}/bin/busco_multigene_tree.py" collect \
       --input_dir 'busco' --out_dir '.' --cores ${task.cpus}
+
+    "${projectDir}/bin/busco_multigene_tree.py" select \
+      --input_dir 'busco' --out_dir '.' \
+      --fraction ${fractions} --cores ${task.cpus}
     """
 
     stub:
@@ -126,20 +130,6 @@ process collect_seqs {
     mkdir -p seqs/raw
     """
 }
-
-// // Select shared genes based on completeness fractions
-// process selectGenes {
-//     label 'process_low'
-//     tag    'select'
-
-//     publishDir
-
-//     input:
-
-//     output:
-
-//     script:
-// }
 
 // // Align and trim each gene independently
 // process alignGenes {
@@ -193,9 +183,9 @@ workflow {
 
   // Run BUSCO for each sample
   busco_results = busco(fasta_ch, busco_db, params.busco_opts)
-  // busco_results.view { "BUSCO results: ${it}" }
+                      .collect()
 
   // Collect per-gene FASTA files
-  seqs_dir = collect_seqs(busco_results.collect())
-            .view { "Collected per-gene FASTA files: ${it}" }
+  seqs_dir = collect_seqs(busco_results, params.fraction)
+            .view { "${it}" }
 }
