@@ -186,6 +186,6 @@ workflow {
                       .collect()
 
   // Collect per-gene FASTA files
-  seqs_dir = collect_seqs(busco_results, params.fraction)
+  seqs_dir = collect_and_select_genes(busco_results, params.fraction)
             .view { "${it}" }
 }
