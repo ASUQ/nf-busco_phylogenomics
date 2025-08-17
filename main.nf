@@ -106,10 +106,10 @@ process collect_seqs {
     label 'process_low'
     tag   'collect'
 
-    publishDir "${params.outdir}/seqs", mode: 'copy'
+    publishDir "${params.outdir}", mode: 'copy'
 
     input:
-    path busco_dirs
+    path sample_busco, stageAs: 'busco/*'
 
     // Emit a sentinel to let downstream steps bind explicitly
     output:
@@ -118,8 +118,12 @@ process collect_seqs {
     script:
     """
     "${projectDir}/bin/busco_multigene_tree.py" collect \
-      -i "${params.outdir}/busco" \
-      -c ${task.cpus}
+      --input_dir 'busco' --out_dir '.' --cores ${task.cpus}
+    """
+
+    stub:
+    """
+    mkdir -p seqs/raw
     """
 }
 
