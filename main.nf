@@ -44,25 +44,25 @@ def missingParametersError() {
 // Download BUSCO dataset for offline use
 process download_busco_dataset {
     label 'process_single'
-    tag   'download busco dataset'
 
-    publishDir "${params.outdir}/lineages", mode: 'copy'
+    publishDir "${params.outdir}/busco_dataset", mode: 'copy'
 
     input:
     val lineage
 
     output:
-    path "lineages/${lineage}", emit: lineage_dir
+    path "${lineage}", emit: lineage_dir
 
     script:
     """
-    busco --download "${lineage}" --download_path "lineages/${lineage}"
+    busco --download "${lineage}"
+    mv "busco_downloads/lineages/${lineage}" "${lineage}"
     """
 
     stub:
     """
     echo "Stub process for downloading BUSCO dataset: ${lineage}"
-    mkdir -p "lineages/${lineage}"
+    mkdir -p "${lineage}"
     """
 }
 
@@ -153,8 +153,8 @@ workflow {
   fasta_ch = Channel.fromPath(params.sample, checkIfExists: true)
                     .splitCsv(strip: true, header: true)
                     // .view()
-  // println "Input samples: ${params.lineage}"
 
   // Download BUSCO lineage dataset
-  lineage_dir = download_busco_dataset(lineage: params.lineage)
+  lineage_dir = download_busco_dataset(params.lineage)
+  lineage_dir.view { "Downloaded BUSCO lineage: ${it}" }
 }
