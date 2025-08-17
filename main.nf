@@ -117,7 +117,7 @@ process collect_seqs {
 
     script:
     """
-    bin/Busco_multigene_tree.py collect \
+    bin/busco_multigene_tree.py collect \
       -i ${params.outdir}/busco \
       -c ${task.cpus}
     """
