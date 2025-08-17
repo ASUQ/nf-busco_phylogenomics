@@ -84,7 +84,7 @@ process busco {
     """
     busco --in "${fasta}" \
           --lineage_dataset "${params.lineage}" \
-          --out "${sample}" \
+          --out "${sample}/busco_output" \
           --mode genome \
           --cpu ${task.cpus} \
           --offline \
@@ -94,25 +94,25 @@ process busco {
     stub:
     """
     echo "Stub process for BUSCO: ${sample}"
-    mkdir -p "${sample}"
-    echo "Sample: ${sample}" > "${sample}/sample_info.txt"
-    echo "Lineage: ${lineage_dir}" >> "${sample}/sample_info.txt"
+    mkdir -p "${sample}/busco_output"
+    echo "Sample: ${sample}" > "${sample}/busco_output/sample_info.txt"
+    echo "Lineage: ${lineage_dir}" >> "${sample}/busco_output/sample_info.txt"
     echo "BUSCO run completed for ${sample}"
     """
 }
 
-// Collect per-gene FASTA files from BUSCO outputs
-process collectSeqs {
-    label 'process_low'
+// // Collect per-gene FASTA files from BUSCO outputs
+// process collectSeqs {
+//     label 'process_low'
 
-    publishDir
+//     publishDir
 
-    input:
+//     input:
 
-    output:
+//     output:
 
-    script:
-}
+//     script:
+// }
 
 // // Select shared genes based on completeness fractions
 // process selectGenes {
