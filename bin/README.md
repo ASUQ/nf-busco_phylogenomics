@@ -26,7 +26,7 @@ This Python script automates extraction of BUSCO single-copy orthologs across mu
 
 - Linux or macOS
 - [miniforge](https://github.com/conda-forge/miniforge)
-- Python 3.13+
+- Python 3.10+
 
 
 ## Installation
@@ -39,7 +39,7 @@ This Python script automates extraction of BUSCO single-copy orthologs across mu
 
 2. Create and activate a conda environment
 	```bash
-	conda create -n busco_phylogenomics 'python>=3.13' \
+	conda create -n busco_phylogenomics 'python>=3.10' \
 		biopython tqdm mafft trimal iqtree amas \
 		-c conda-forge -c bioconda
 	conda activate busco_phylogenomics
@@ -47,16 +47,20 @@ This Python script automates extraction of BUSCO single-copy orthologs across mu
 
 3. Make the script executable
 	```bash
-	chmod +x Busco_multigene_tree.py
+	chmod +x busco_multigene_tree.py
 	```
 
 
 ## Usage
 ```bash
-Busco_multigene_tree.py <subcommand> [options]
-Busco_multigene_tree.py -h
-Busco_multigene_tree.py collect --help
+busco_multigene_tree.py <subcommand> [options]
+busco_multigene_tree.py -h
+busco_multigene_tree.py collect --help
 ```
+
+## Fraction
+- `--fraction 0.8` builds a phylogenomic tree with genes that 80% of the samples possess
+- Multiple fractions can be selected with comma (`--fraction 0.8,0.9,1.0`)
 
 ## Input directory structure
 
