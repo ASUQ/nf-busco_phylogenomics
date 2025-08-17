@@ -79,7 +79,7 @@ process busco {
     val busco_opts
 
     output:
-    path "${sample}-busco", emit: busco_dir
+    path "${sample}", emit: busco_dir
 
     script:
     """
