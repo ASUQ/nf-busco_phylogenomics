@@ -24,7 +24,7 @@ def helpMessage() {
     --outdir      Output directory (default: ./output)
     --fraction    Comma-separated completeness fractions (default: 0.8,0.9,1.0)
     --busco_opts  Extra BUSCO flags (default: "")
-    --mafft_opts  MAFFT options (default: --globalpair --maxiterate 1000 --thread \$task.cpus)
+    --mafft_opts  MAFFT options (default: --globalpair --maxiterate 1000)
     --trimal_opts trimAl options (default: -automated1)
     --amas_opts   AMAS concat options (default: --in-format fasta --data-type aa --part-format nexus --cores \$task.cpus)
     --iqtree_opts IQ-TREE options (default: -B 1000 -alrt 1000 -m MFP+MERGE -T \$task.cpus)
@@ -131,19 +131,33 @@ process collect_and_select_genes {
     """
 }
 
-// // Align and trim each gene independently
-// process alignGenes {
-//     label 'process_high'
-//     tag
+// Align and trim genes
+process align_genes {
+    label 'process_high'
+    tag   { gene }
 
-//     publishDir
+    publishDir "${params.outdir}/seqs/aligned", mode: 'copy'
+    publishDir "${params.outdir}/seqs/trimmed", mode: 'copy'
 
-//     input:
+    input:
+    tuple val(gene), path(faa)
 
-//     output:
+    output:
+    path "${gene}_aligned.faa", emit: aligned
+    path "${gene}_trimmed.faa", emit: trimmed
 
-//     script:
-// }
+    script:
+    def mafft_opts  = (params.mafft_opts  ?: '')
+    def trimal_opts = (params.trimal_opts ?: '')
+    """
+    mafft ${mafft_opts} --thread ${task.cpus} "${faa}" > "${gene}_aligned.faa"
+
+    trimal ${trimal_opts} \
+      -in  "${gene}_aligned.faa" \
+      -out "${gene}_trimmed.faa"
+    """
+}
+
 
 // // Concatenate alignments and infer phylogenetic trees
 // process inferTrees {
@@ -172,6 +186,10 @@ workflow {
     exit 1
   }
 
+  // Read fractions (e.g. "0.8,0.9,1.0"), pick smallest for alignment
+  frac_list = (params.fraction as String).tokenize(',').collect { it as Double }.sort()
+  smallest_pct = (frac_list[0] * 100) as int
+
   // Channel setup
   fasta_ch = Channel.fromPath(params.sample, checkIfExists: true)
                     .splitCsv(strip: true, header: true)
@@ -186,5 +204,28 @@ workflow {
                       .collect()
 
   // Collect and select genes from BUSCO results
-  seqs_dir = collect_and_select_genes(busco_results, params.fraction)
+  busco_genes = collect_and_select_genes(busco_results, params.fraction)
+
+  // Build gene channel for the smallest fraction only -> per-gene alignment input
+  min_frac_gene_ch = busco_genes.frac_results
+                                .filter { it.name == "frac${smallest_pct}pct_results" }
+                                .map { dir -> file("${dir}/frac${smallest_pct}pct_genes.txt") }
+                                .view { "Gene list for fraction ${smallest_pct}%: ${it}" }
+
+  // raw dir path from 'seqs' output
+  raw_dir_ch = busco_genes.seqs_dir
+                          .map { dir -> file("${dir}/raw") }
+                          .view { "Raw gene directory: ${it}" }
+
+  // Create (gene, fasta) tuples by combining gene list + raw dir
+  gene_ch = min_frac_gene_ch.combine(raw_dir_ch).flatMap { f, rawdir ->
+    def genes = new File(f.toString()).readLines().drop(2)
+    genes.collect { g -> tuple(g, file("${rawdir}/${g}.faa")) }
+  }
+
+  // // Align & trim each gene
+  // aligned = align_genes(gene_ch)
+
+  // // Gather all trimmed files to feed each infer task
+  // trimmed_all_ch = aligned.trimmed.collect()
 }
