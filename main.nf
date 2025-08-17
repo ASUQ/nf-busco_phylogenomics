@@ -84,7 +84,7 @@ process busco {
     script:
     """
     busco --in "${fasta}" \
-          --lineage_path "${lineage_dir}" \
+          --lineage_dataset "${lineage_dir}" \
           --out "${sample}" \
           --mode genome \
           --cpu ${task.cpus} \
