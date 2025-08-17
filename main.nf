@@ -83,7 +83,7 @@ process busco {
 
     script:
     """
-    busco --in "${fasta_file}" \
+    busco --in "${fasta}" \
           --lineage_path "${lineage_dir}" \
           --out "${sample}" \
           --mode genome \
