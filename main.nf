@@ -51,18 +51,17 @@ process download_busco_dataset {
     val lineage
 
     output:
-    path "${lineage}", emit: lineage_dir
+    path "busco_dataset", emit: lineage_dir
 
     script:
     """
     busco --download "${lineage}"
-    mv "busco_downloads/lineages/${lineage}" "${lineage}"
     """
 
     stub:
     """
     echo "Stub process for downloading BUSCO dataset: ${lineage}"
-    mkdir -p "${lineage}"
+    mkdir -p "busco_dataset/lineages/${lineage}"
     """
 }
 
@@ -102,19 +101,18 @@ process busco {
     """
 }
 
-// // Collect per-gene FASTA files from BUSCO outputs
-// process collectSeqs {
-//     label 'process_low'
-//     tag    'collect'
+// Collect per-gene FASTA files from BUSCO outputs
+process collectSeqs {
+    label 'process_low'
 
-//     publishDir
+    publishDir
 
-//     input:
+    input:
 
-//     output:
+    output:
 
-//     script:
-// }
+    script:
+}
 
 // // Select shared genes based on completeness fractions
 // process selectGenes {
