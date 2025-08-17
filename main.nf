@@ -192,6 +192,6 @@ workflow {
   // busco_results.view { "BUSCO results: ${it}" }
 
   // Collect per-gene FASTA files
-  seqs_dir = collect_seqs(busco_results.collect)
+  seqs_dir = collect_seqs(busco_results.collect())
             .view { "Collected per-gene FASTA files: ${it}" }
 }
