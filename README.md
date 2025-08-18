@@ -1,4 +1,4 @@
-# busco_phylogenomics
+# nf-busco_phylogenomics
 
 
 [![Nextflow](https://img.shields.io/badge/version-%E2%89%A524.10.5-green?style=flat&logo=nextflow&logoColor=white&color=%230DC09D&link=https%3A%2F%2Fnextflow.io)](https://www.nextflow.io/)
@@ -8,7 +8,7 @@
 
 ## Introduction
 
-**busco_phylogenomics** is a Nextflow pipeline to build phylogenomic tree from BUSCO outputs
+**nf-busco_phylogenomics** is a Nextflow pipeline to build phylogenomic tree from BUSCO outputs
 
 
 ## Usage
