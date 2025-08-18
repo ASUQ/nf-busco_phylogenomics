@@ -113,5 +113,4 @@ output/
 if `seqs/raw`, `seqs/aligned`, ir `seqs/trimmed` already contains files, the software will abort.
 
 ## Authors
-<!-- - Arno Hagenbeek (ArnoHagenbeek) -->
 - Akito Shima (ASUQ) — akito.shima@oist.jp
