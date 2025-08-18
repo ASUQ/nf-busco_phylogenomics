@@ -29,7 +29,7 @@ Options:
 Required Packages and Softwares:
     Biopython, tqdm, mafft, trimAl, AMAS, IQ-TREE
 
-Author: Arno Hagenbeek (ArnoHagenbeek), Akito Shima (ASUQ)
+Author: Akito Shima (ASUQ)
 Email: akito.shima@oist.jp
 """
 
