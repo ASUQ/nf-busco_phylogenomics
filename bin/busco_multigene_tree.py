@@ -3,7 +3,7 @@
 
 """
 Usage:
-    Busco_multigene_tree.py <subcommand> [options]
+    busco_multigene_tree.py <subcommand> [options]
 
 Purpose:
     Create multi-gene phylogenomic tree from BUSCO single-copy orthologs.
