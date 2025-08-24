@@ -9,7 +9,7 @@ def helpMessage() {
   ===============================
   BUSCO Phylogenomics Pipeline
   Nextflow pipeline for BUSCO-based multigene phylogenomics
-  Version: 0.1.0
+  Version: 0.1.1
   Author : Akito Shima (ASUQ)
   Email: akito.shima@oist.jp
   ===============================
