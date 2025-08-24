@@ -13,12 +13,12 @@
 # make sure you installed miniconda3
 source '~/.bashrc'
 
-# conda create -n busco_phylogeny \
+# conda create -n busco_phylogeny -c conda-forge, -c bioconda \
 #   Biopython, tqdm, mafft, trimAl, AMAS, IQ-TREE
 
 CONDA_ENV='busco_phylogeny'
 
-SCRIPT='./Busco_multigene_tree.py'
+SCRIPT='./busco_multigene_tree.py'
 #------------------------------------#
 
 

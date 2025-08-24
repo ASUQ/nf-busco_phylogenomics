@@ -12,6 +12,7 @@ Icon?
 .nextflow_trace.*
 .nextflow_timeline.*
 .nextflow_dag.*
+
 # Work & output dirs (pipeline‐specific)
 work/
 results/
@@ -19,11 +20,15 @@ execution-reports/
 data/
 logs/
 
+# Container cache
+.singularity-cache/
+
 # Conda & Python
 __pycache__/
 *.py[cod]
 *.so
 *.egg-info/
+
 # local virtual envs (if you ever create one in‐repo)
 env/
 .venv/
