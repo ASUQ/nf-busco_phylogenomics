@@ -149,7 +149,8 @@ process align_genes {
     def mafft_opts  = (params.mafft_opts  ?: '')
     def trimal_opts = (params.trimal_opts ?: '')
     """
-    mafft ${mafft_opts} --thread ${task.cpus} "${faa}" > "${gene}_aligned.faa"
+    mafft ${mafft_opts} --thread ${task.cpus} --threadtb ${task.cpus} \
+      --threadit ${task.cpus} "${faa}" > "${gene}_aligned.faa"
 
     trimal ${trimal_opts} \
       -in  "${gene}_aligned.faa" \
