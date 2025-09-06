@@ -184,7 +184,8 @@ process infer_trees {
     def amas_opts   = (params.amas_opts   ?: '')
     def iqtree_opts = (params.iqtree_opts ?: '')
     """
-    mapfile -t GENES < <(tail -n +3 "${gene_list}")
+    mapfile -t GENES < <(tail -n +3 "${gene_list}" | grep -v '^$')
+
     TRIMMED_FILES=""
     for gene in "\${GENES[@]}"; do
       f="\${gene}_trimmed.faa"
