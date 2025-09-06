@@ -186,6 +186,11 @@ process infer_trees {
     """
     mapfile -t GENES < <(tail -n +3 "${gene_list}" | grep -v '^$')
 
+    if [ "\${#GENES[@]}" -eq 0 ]; then
+      echo "[WARNING] No genes found in the fraction file: ${gene_list}" >&2
+      exit 0
+    fi
+
     TRIMMED_FILES=""
     for gene in "\${GENES[@]}"; do
       f="\${gene}_trimmed.faa"
