@@ -177,8 +177,8 @@ process infer_trees {
     path  trimmed_all                 // all *_trimmed.faa staged as inputs
 
     output:
-    path "concat.faa"
-    path "partitions.nex"
+    path "concat.faa", optional: true
+    path "partitions.nex", optional: true
     path "frac*", optional: true
 
     script:
