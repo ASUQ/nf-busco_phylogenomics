@@ -185,7 +185,7 @@ process infer_trees {
     def amas_opts   = (params.amas_opts   ?: '')
     def iqtree_opts = (params.iqtree_opts ?: '')
     """
-    mapfile -t GENES < <(tail -n +3 "${gene_list}" | grep -v '^$')
+    readarray -t GENES < <(tail -n +3 "${gene_list}" | sed -e 's/\r\$//' -e '/^[[:space:]]*\$/d')
 
     if [ "\${#GENES[@]}" -eq 0 ]; then
       echo "[WARNING] No genes found in the fraction file: ${gene_list}" >&2
