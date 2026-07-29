@@ -45,7 +45,7 @@ Now, you can run the pipeline using:
 
 ```bash
 nextflow run ASUQ/busco_phylogenomics \
-   -profile <docker/singularity/gwdg/oist/...> \
+   -profile <docker/singularity/gwdg/oist/viper-cpu/...> \
    --sample sample.csv \
    --lineage <busco_lineage> \
    --outdir <OUTDIR>
@@ -56,7 +56,7 @@ file instead:
 
 ```bash
 nextflow run ASUQ/busco_phylogenomics \
-   -profile <docker/singularity/gwdg/oist/...> \
+   -profile <docker/singularity/gwdg/oist/viper-cpu/...> \
    --sample species_representatives.csv \
    --lineage <busco_lineage> \
    --outdir <OUTDIR>
@@ -68,6 +68,37 @@ BUSCO runs with `--tar` by default to reduce inode pressure from high-file-count
 BUSCO subdirectories. The collector reads both tarred and untarred BUSCO
 sequence output. Use `--busco_tar false` to keep the legacy untarred BUSCO
 output layout.
+
+### MPCDF Viper CPU
+
+Launch `viper-cpu` from `viper05i` with Nextflow work and Apptainer cache data
+on shared `/ptmp` storage:
+
+```bash
+export NXF_APPTAINER_CACHEDIR="/ptmp/$USER/apptainer-cache"
+
+nextflow run ASUQ/busco_phylogenomics \
+  -profile viper-cpu \
+  -w "/ptmp/$USER/nf-busco_phylogenomics-work" \
+  --sample sample.csv \
+  --lineage <busco_lineage> \
+  --outdir "/ptmp/$USER/nf-busco_phylogenomics-results"
+```
+
+Compute tasks use Slurm without a fixed partition, account, or QoS. The
+`download_busco_dataset` process remains intact and runs locally with one CPU
+and at most 16 GB; the two-CPU local executor permits at most two
+internet-dependent tasks at once. Override the cache with
+`--apptainer_cache_dir` and the default `apptainer/1.4.3` module with
+`--viper_apptainer_module <module/name>` when necessary.
+
+Viper `/ptmp` is not backed up and inactive files are subject to retention
+cleanup, so preserve final results elsewhere when required. `/r` is
+login-node-only; `/tmp` and generic `$TMPDIR` are unsuitable for Nextflow work
+or shared container caches. The reusable `needs_internet` and opt-in
+`process_local_scratch` labels are available; the latter uses `$JOB_TMPDIR`.
+
+Run the dependency-locked development test suite with `pixi run test`.
 
 <!--　> [!WARNING]
 > Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see [docs](https://nf-co.re/docs/usage/getting_started/configuration#custom-configuration-files).　-->
