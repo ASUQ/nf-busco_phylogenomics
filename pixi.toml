@@ -1,0 +1,17 @@
+[workspace]
+name = "nf-busco-phylogenomics"
+channels = ["conda-forge", "bioconda"]
+platforms = ["osx-arm64", "linux-64"]
+
+[dependencies]
+biopython = "1.84.*"
+nextflow = "26.04.*"
+python = "3.12.*"
+tqdm = ">=4.66,<5"
+
+[tasks]
+test-python = "python -m unittest discover -s tests"
+test-nextflow-stub = "bash tests/test_nextflow_stub_fraction_publishdir.sh"
+test-helper-integration = "bash tests/test_nf_helper_integration.sh"
+test-viper-config = "HOSTNAME=viper05i NXF_APPTAINER_CACHEDIR=/ptmp/pixi-test/apptainer-cache NXF_SYNTAX_PARSER=v2 nextflow config -profile viper-cpu >/dev/null"
+test = { depends-on = ["test-python", "test-nextflow-stub", "test-helper-integration", "test-viper-config"] }

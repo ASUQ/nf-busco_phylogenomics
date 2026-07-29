@@ -31,6 +31,7 @@ __pycache__/
 
 # local virtual envs (if you ever create one in‐repo)
 env/
+.pixi/
 .venv/
 .conda_env/
 *.env
