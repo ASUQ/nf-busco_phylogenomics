@@ -88,7 +88,10 @@ nextflow run ASUQ/busco_phylogenomics \
 Compute tasks use Slurm without a fixed partition, account, or QoS. The
 `download_busco_dataset` process remains intact and runs locally with one CPU
 and at most 16 GB; the two-CPU local executor permits at most two
-internet-dependent tasks at once. Override the cache with
+internet-dependent tasks at once. Nextflow keeps at most 250 Slurm tasks
+outstanding by default, leaving headroom below Viper's default 300-job per-user
+submission limit. Lower the ceiling with `--viper_slurm_queue_size` when other
+jobs or workflow launches share that limit. Override the cache with
 `--apptainer_cache_dir` and the default `apptainer/1.4.3` module with
 `--viper_apptainer_module <module/name>` when necessary.
 
